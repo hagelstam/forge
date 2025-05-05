@@ -18,18 +18,16 @@ type mockRepository struct {
 	internal.Repository
 	getPosts   func() ([]internal.Post, error)
 	createPost func(internal.Post) error
-	deletePost func(primitive.ObjectID) error
+	deletePost func(string) error
 	updatePost func(internal.Post) error
 }
 
-func (m mockRepository) GetPosts() ([]internal.Post, error)     { return m.getPosts() }
-func (m mockRepository) CreatePost(p internal.Post) error       { return m.createPost(p) }
-func (m mockRepository) DeletePost(id primitive.ObjectID) error { return m.deletePost(id) }
-func (m mockRepository) UpdatePost(p internal.Post) error       { return m.updatePost(p) }
+func (m mockRepository) GetPosts() ([]internal.Post, error) { return m.getPosts() }
+func (m mockRepository) CreatePost(p internal.Post) error   { return m.createPost(p) }
+func (m mockRepository) DeletePost(id string) error         { return m.deletePost(id) }
+func (m mockRepository) UpdatePost(p internal.Post) error   { return m.updatePost(p) }
 
 func TestGetPostsHandler(t *testing.T) {
-	testObjectID := primitive.NewObjectID()
-
 	tests := []struct {
 		name             string
 		mockGetPosts     func() ([]internal.Post, error)
@@ -40,11 +38,11 @@ func TestGetPostsHandler(t *testing.T) {
 		{
 			name: "Happy path",
 			mockGetPosts: func() ([]internal.Post, error) {
-				return []internal.Post{{ID: testObjectID, Content: "Test Post"}}, nil
+				return []internal.Post{{ID: "123", Content: "Test Post"}}, nil
 			},
 			wantErr:          false,
 			expectedStatus:   http.StatusOK,
-			expectedResponse: []internal.Post{{ID: testObjectID, Content: "Test Post"}},
+			expectedResponse: []internal.Post{{ID: "123", Content: "Test Post"}},
 		},
 		{
 			name: "Repository error",
@@ -139,21 +137,21 @@ func TestDeletePostHandler(t *testing.T) {
 	tests := []struct {
 		name           string
 		postID         string
-		mockDeletePost func(primitive.ObjectID) error
+		mockDeletePost func(string) error
 		expectedStatus int
 	}{
 		{
 			name:   "Happy path",
-			postID: primitive.NewObjectID().Hex(),
-			mockDeletePost: func(id primitive.ObjectID) error {
+			postID: "123",
+			mockDeletePost: func(id string) error {
 				return nil
 			},
 			expectedStatus: http.StatusNoContent,
 		},
 		{
 			name:   "Repository error",
-			postID: primitive.NewObjectID().Hex(),
-			mockDeletePost: func(id primitive.ObjectID) error {
+			postID: "123",
+			mockDeletePost: func(id string) error {
 				return fmt.Errorf("database error")
 			},
 			expectedStatus: http.StatusInternalServerError,

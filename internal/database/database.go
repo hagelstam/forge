@@ -1,24 +1,35 @@
 package database
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mongoURI = os.Getenv("MONGO_URI")
+var (
+	database   = os.Getenv("DB_DATABASE")
+	password   = os.Getenv("DB_PASSWORD")
+	username   = os.Getenv("DB_USERNAME")
+	port       = os.Getenv("DB_PORT")
+	host       = os.Getenv("DB_HOST")
+	schema     = os.Getenv("DB_SCHEMA")
+	dbInstance *sql.DB
+)
 
-func New() *mongo.Database {
-	clientOpts := options.Client().ApplyURI(mongoURI)
-
-	client, err := mongo.Connect(context.Background(), clientOpts)
-	if err != nil {
-		panic(fmt.Sprintf("cannot connect to db: %s", err))
+func New() *sql.DB {
+	if dbInstance != nil {
+		return dbInstance
 	}
 
-	return client.Database("blooprint")
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
+	db, err := sql.Open("pgx", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return db
 }

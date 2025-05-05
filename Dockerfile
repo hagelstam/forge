@@ -11,7 +11,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go
 
 
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim as prod
 
 WORKDIR /app
 
@@ -22,5 +22,7 @@ COPY --from=builder /app/main .
 RUN chown appuser:appuser /app/main
 
 USER appuser
+
+EXPOSE ${PORT}
 
 CMD ["./main"]

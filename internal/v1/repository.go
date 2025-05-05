@@ -2,22 +2,22 @@ package v1
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/hagelstam/forge/internal"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var _ internal.Repository = &Repository{}
 
 type Repository struct {
-	db *mongo.Database
+	db *sql.DB
 }
 
-func NewRepository(db *mongo.Database) *Repository {
+func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
@@ -41,7 +41,7 @@ func (r *Repository) CreatePost(post internal.Post) error {
 	return err
 }
 
-func (r *Repository) DeletePost(ID primitive.ObjectID) error {
+func (r *Repository) DeletePost(ID string) error {
 	filter := bson.M{"_id": ID}
 	opts := options.Delete().SetHint(bson.M{"_id": 1})
 

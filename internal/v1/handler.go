@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hagelstam/forge/internal"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Handler struct {
@@ -54,13 +53,7 @@ func (h *Handler) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := chi.URLParam(r, "id")
 
-	postObjectID, err := primitive.ObjectIDFromHex(postID)
-	if err != nil {
-		http.Error(w, "invalid post ID", http.StatusBadRequest)
-		return
-	}
-
-	if err := h.repository.DeletePost(postObjectID); err != nil {
+	if err := h.repository.DeletePost(postID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -71,18 +64,12 @@ func (h *Handler) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := chi.URLParam(r, "id")
 
-	postObjectID, err := primitive.ObjectIDFromHex(postID)
-	if err != nil {
-		http.Error(w, "invalid post ID", http.StatusBadRequest)
-		return
-	}
-
 	var post internal.Post
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
 		http.Error(w, "invalid request body", http.StatusInternalServerError)
 		return
 	}
-	post.ID = postObjectID
+	post.ID = postID
 
 	if post.Content == "" {
 		http.Error(w, "content field is required", http.StatusBadRequest)
